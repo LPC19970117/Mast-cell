@@ -1,16 +1,16 @@
 
-#4.计算signature
+#4.calculate signature
 library(tidyverse)
 library(Matrix)
 library(cowplot)
 MC_activation_signature <- readxl::read_xlsx("MC_activation_signature.xlsx")
 View(MC_activation_signature)
-#转换成list
+#transformed into list
 gene <- as.list(MC_activation_signature)
 sce_Mast_Mast <- AddModuleScore(
   object = sce_Mast_Mast,
   features = gene,
-  ctrl = 100, #默认值是100
+  ctrl = 100, 
   name = 'MC_activation_signature'
 )
 
@@ -41,22 +41,20 @@ FeaturePlot(sce_Mast_Mast, features = 'MC_activation_signature1',
             reduction = "umap")
 dev.off()
 
-
-
 ########
 sce_Mast_Mast= SetIdent(sce_Mast_Mast,value="subcelltype2") 
 pdf(paste0("./",sam.name,"/MC_activation_signature_subcelltype2",".pdf"),width = 5,height = 4)
 VlnPlot(sce_Mast_Mast,features = 'MC_activation_signature1')
 dev.off()
 
-##加入angiogenesis和proliferation
+##add angiogenesis and proliferation score
 proliferation_score <- readxl::read_xlsx("proliferation_score.xlsx")
-#转换成list
+#transformed into list
 gene <- as.list(proliferation_score)
 sce_Mast <- AddModuleScore(
   object = sce_Mast,
   features = gene,
-  ctrl = 100, #默认值是100
+  ctrl = 100, 
   name = 'proliferation_score'
 )
 pdf(paste0("./",sam.name,"/proliferation_score",".pdf"),width = 5,height = 4)
@@ -64,12 +62,12 @@ VlnPlot(sce_Mast,features = 'proliferation_score1')
 dev.off()
 
 Angiogenesis_score <- readxl::read_xlsx("Angiogenesis_score.xlsx")
-#转换成list
+#transformed into list
 gene <- as.list(Angiogenesis_score)
 sce_Mast <- AddModuleScore(
   object = sce_Mast,
   features = gene,
-  ctrl = 100, #默认值是100
+  ctrl = 100, 
   name = 'Angiogenesis_score'
 )
 pdf(paste0("./",sam.name,"/Angiogenesis_score",".pdf"),width = 5,height = 4)
