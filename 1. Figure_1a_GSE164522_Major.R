@@ -65,7 +65,7 @@ sce_PT <- CreateSeuratObject(
 save(sce_PT,file=paste0("./","sce_PT.RData"))
 rm(data_PT)
 
-# merge 合并seurat除LN外的5种组织
+# merge 合并seurat中除LN外的5种组织#Merge 5 organizations in seurat except LN
 sce<- merge(sce_MN, y=c(sce_MT, sce_PBMC, sce_PN, sce_PT))
 save(sce,file=paste0("./","sce0_of_5_tissue.RData"))
 rm(sce_MN,sce_MT, sce_PBMC, sce_PN, sce_PT)
@@ -93,7 +93,7 @@ CombinePlots(plots = list(plot1, plot2),legend = "none")
 dev.off()
 rm(plot1,plot2)
 
-#### 5. 筛选细胞 ####
+#### 5. 筛选细胞 ####Screen cells
 cat("Before filter :",nrow(sce@meta.data),"cells\n")
 #sce <- subset(sce, subset = nFeature_RNA > 500 & nFeature_RNA < 6000 & percent.mt < 20)
 #cat("After filter :",nrow(sce@meta.data),"cells\n")
@@ -114,8 +114,8 @@ CombinePlots(plots = list(plot1, plot2),legend = "none")
 dev.off()
 rm(plot1,plot2)
 
-#均一化
-#这是2000高变基因的归一化
+#normalization
+#This is the normalization of 2000 hypervariable genes
 sce <- ScaleData(sce,
                  vars.to.regress = c("percent.mt"))
 #############################################################################################################
@@ -145,7 +145,7 @@ FeaturePlot(sce, features = c("CD3D","KLRF1","MS4A1","MZB1","LYZ","TPSAB1","EPCA
             reduction = "umap")
 dev.off()
 
-## 气泡图
+## bubble chart
 features <- c("TFF3","AGR2","EPCAM",#Epithelial
               "CD3E","CD3D","CCL5",#T
               "PLVAP","VWF","PECAM1",#
@@ -158,12 +158,12 @@ features <- c("TFF3","AGR2","EPCAM",#Epithelial
 features= c("CD3D","KLRF1","MS4A1","MZB1","LYZ","TPSAB1","EPCAM","DCN","FCGR3B","VWF",
             "LILRA4","CD68","COL1A2","FCGR3B","PLVAP","CD14")
 
-## major_marker_gene 气泡图
+## major_marker_gene bubble chart
 pdf(paste0("./",sam.name,"/DotPlot2_umap.",max(dim.use),"PC.pdf"),width = 10,height = 10)
 DotPlot(sce, features = unique(features)) + RotatedAxis()
 dev.off()
 
-#细胞类群相似树
+#ClusterTree plot
 sce <- BuildClusterTree(
   sce,
   dims = dim.use,
@@ -173,8 +173,7 @@ pdf(paste0("./",sam.name,"/CellCluster-ClusterTree_",max(dim.use),"PC.pdf"),widt
 PlotClusterTree(sce)
 dev.off()
 
-##在meta.data中重命名seurat_clusters为celltype
-#使用unname函数配合向量：
+##在meta.data中重命名seurat_clusters为celltype #Rename seurat_clusters to celltype in meta.data
 cluster2celltype <- c( "0"="T",
                        "1"="T", 
                        "2"="T", 
@@ -228,16 +227,16 @@ cluster2celltype <- c( "0"="T",
 sce[['celltype']] = unname(cluster2celltype[sce@meta.data$seurat_clusters])
 View(sce@meta.data) 
 
-##celltype UMAP图
+##celltype UMAP plot
 pdf(paste0("./",sam.name,"/celltype-DimPlot_umap_",max(dim.use),".pdf"),width = 5,height = 4)
 DimPlot(sce, reduction = "umap",group.by = 'celltype',label = T)
 dev.off()
 
-#### 2.1 计算major_marker gene
+#### 2.1 calculate major_marker gene
 sce.markers <- FindAllMarkers(sce, only.pos = TRUE, min.pct = 0.5, logfc.threshold = 1)
 write.table(sce.markers,file=paste0("./",sam.name,"/","seurat_clusters",max(dim.use),"PC.txt"),sep="\t",quote = F)
 
-#补充meta.data数据
+#add data in meta.data
 ldf=read.table("patient.txt",header = T)[,1]
 sce@meta.data$patient <- ldf
 ldf=read.table("tissue.txt",header = T)[,1]
@@ -262,10 +261,10 @@ sce@meta.data$lymph_node_metastasis <- ldf
 sce@meta.data$sourse<-"GSE164522"
 rm(ldf)
 
-#4.存储数据大类sce1
+#4.save data sce1
 save(sce,file=paste0("./",sam.name,"/","sce1.RData"))
 
-## 2.重新读取数据
+## 2.reread data
 rm(list = ls())
 library(Seurat)
 library(ggplot2)
@@ -273,14 +272,15 @@ library(patchwork)
 library(dplyr)
 load(file = 'sce1.RData')
 View(sce@meta.data)
-#确定用于细胞分群的PC,放置数据的位置"test2"
+
+#确定用于细胞分群的PC,放置数据的位置"test2" #Determine the PC used for cell clustering and place the data in "test2"
 dim.use <- 1:50
 sam.name <- "test2"
 if(!dir.exists(sam.name)){
   dir.create(sam.name)
 }
 
-#按照数据来源分组展示细胞异同-sample
+#按照数据来源分组展示细胞异同-sample#Group by data source to display cell similarities and differences-sample
 #sce= SetIdent(sce,value="subname")
 pdf(paste0("./",sam.name,"/umap_patient.",max(dim.use),"PC.pdf"),width = 5,height = 4)
 DimPlot(object = sce, group.by="patient",reduction='umap')
@@ -307,12 +307,12 @@ dev.off()
 features= c("CD3D","KLRF1","MS4A1","MZB1","LYZ","TPSAB1","EPCAM","DCN","FCGR3B","VWF",
             "LILRA4","CD68","COL1A2","FCGR3B","PLVAP","CD14")
 
-##major_marker gene 气泡图
+##major_marker gene DotPlot
 pdf(paste0("./",sam.name,"/DotPlot_umap_celltype.",max(dim.use),"PC.pdf"),width = 10,height = 4)
 DotPlot(sce, features = unique(features)) + RotatedAxis()
 dev.off()
 
-##major_marker gene 气泡图更好的可视化
+##major_marker gene DotPlot
 library(RColorBrewer)
 color1 = colorRampPalette(rev(brewer.pal(n= 7, name = "RdYlBu")))(100)
 features <- c("TFF3","AGR2","EPCAM",#Epithelial
@@ -334,14 +334,14 @@ dev.off()
 
 load(file = 'sce1.RData')
 
-#4.提取Mast亚群
+#4.提取Mast亚群#4. Extract Mast cell
 sce_Mast<-subset(sce,celltype %in% c("Mast"))
 table(sce_Mast@meta.data$celltype)
 
-#4.存储sce_Mast数据
+#4.save sce_Mast data
 save(sce_Mast,file=paste0("./",sam.name,"/","sce_Mast.RData"))
 
-#计算Mast_NormalvsTumor基因的差异
+#计算Mast_NormalvsTumor基因的差异##Calculate the difference between Mast_NormalvsTumor genes
 sce_Mast= SetIdent(sce_Mast,value="tissue") 
 markers <- FindMarkers(sce_Mast, ident.1="NC", ident.2="CRC",
                        assay = 'RNA',slot = 'counts',
@@ -349,7 +349,7 @@ markers <- FindMarkers(sce_Mast, ident.1="NC", ident.2="CRC",
 write.table(markers,file=paste0("./",sam.name,"/","Mast_NormalvsTumor",max(dim.use),"PC.txt"),sep="\t",quote = F)
 table(sce_Mast@meta.data$tissue)
 
-## Mast亚群重新聚类分组
+## Mast亚群重新聚类分组#Mast subpopulation recluster grouping
 sce_Mast <- NormalizeData(sce_Mast, normalization.method = "LogNormalize", scale.factor = 10000) 
 sce_Mast <- FindVariableFeatures(sce_Mast, selection.method = 'vst', nfeatures = 2000)
 sce_Mast<- ScaleData(sce_Mast, vars.to.regress = "percent.mt")
@@ -361,21 +361,21 @@ sce_Mast <- FindNeighbors(sce_Mast, dims = 1:50)
 sce_Mast <- FindClusters(sce_Mast, resolution = 0.8 )
 sce_Mast <- RunUMAP(sce_Mast, dims = 1:50)
 
-##sce_Mast umap图
+##sce_Mast umap plot
 pdf(paste0("./",sam.name,"/sce_Mast_umap",max(dim.use),"PC.pdf"),width = 5,height = 4)
 DimPlot(sce_Mast, reduction = 'umap',label=T)
 dev.off()
 
-##sce_Mast umap图split.by = "tissue"
+##sce_Mast umap plot split.by = "tissue"
 pdf(paste0("./",sam.name,"/sce_Mast_umap_split_tissue",max(dim.use),"PC.pdf"),width = 15,height = 4)
 DimPlot(sce_Mast, split.by = "tissue",reduction = 'umap',label=T)
 dev.off()
 
-#### 计算mast_marker基因
+#### calculate mast_marker gene
 all.markers <- FindAllMarkers(sce_Mast, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 write.table(all.markers,file=paste0("./",sam.name,"/","sce_Mast_marker_genes",max(dim.use),"PC.txt"),sep="\t",quote = F)
 
-#### 计算main_marker基因
+#### calculate main_marker gene
 sce= SetIdent(sce,value="celltype") 
 all.markers <- FindAllMarkers(sce, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 write.table(all.markers,file=paste0("./",sam.name,"/","main_marker_genes",max(dim.use),"PC.txt"),sep="\t",quote = F)
