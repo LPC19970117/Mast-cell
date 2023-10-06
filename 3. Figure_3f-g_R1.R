@@ -10,7 +10,7 @@ library(patchwork)
 
 load(file="sce_Mast2.RData")
 sce<-sce_Mast
-#4.提取Mast_cell亚组
+#4.提取Mast_cell亚组#4. Extract Mast_cell subgroup
 sce<-subset(sce,subcelltype2 %in% c("Activated_MC","Proliferating_MC","Resting_MC"))
 table(sce_Mast@meta.data$celltype)
 
@@ -22,24 +22,24 @@ sample_ann<-sce@meta.data
 rownames(sample_ann)<-colnames(exp.matrix)
 exp_pd<-new("AnnotatedDataFrame", data =sample_ann)
 
-#生成monocle对象
+#生成monocle对象#Generate monocle object
 exp.monocle<-newCellDataSet(exp.matrix,phenoData =exp_pd,featureData =exp_fd,expressionFamily=negbinomial.size())
 head(pData(exp.monocle))
 head(fData(exp.monocle))
 
-#计算sizefactor
+#calculate sizefactor
 exp.monocle <- estimateSizeFactors(exp.monocle)
 exp.monocle <- estimateDispersions(exp.monocle)
 
 
-#根据seurat cluster计算差异表达基因并挑选用于构建拟时序轨迹的基因
+#根据seurat cluster计算差异表达基因并挑选用于构建拟时序轨迹的基因#Calculate differentially expressed genes based on seurat cluster and select genes used to construct pseudo-time series trajectories
 table(sce$subcelltype)
 if(F){
   ex1 <- c(cc.genes$s.genes, cc.genes$g2m.genes)
   ex2 <- grep('^MT-', rownames(sce), value = T)
   ex3 <- grep('^RP[LS]', rownames(sce), value = T)
   ex <- unique(c(ex1, ex2, ex3))
-  #确定需要加入的基因
+  #确定需要加入的基因#Determine the genes that need to be added
   include <- c("TPSAB1","TPSB2","CPA3","HPGDS","MS4A2","KIT","CMA1")
 }
 #order.genes <-  VariableFeatures()
@@ -56,11 +56,11 @@ if(F){
   exp.monocle <- setOrderingFilter(exp.monocle, order.genes)
   plot_ordering_genes(exp.monocle)
 }
-#DDRTree方法降维并构建拟时序
+#DDRTree方法降维并构建拟时序#DDRTree method reduces dimensionality and constructs pseudo-time series
 exp.monocle<-reduceDimension(exp.monocle, max_components = 2, reduction_method = "DDRTree")
 exp.monocle<-orderCells(exp.monocle)
 save(exp.monocle, file = "exp.monocle.Rdata")
-#画图
+#画图#making plot
 plot_cell_trajectory(exp.monocle,color_by = "subcelltype")
 ggsave("subcelltype.pdf",device = "pdf",width = 18,height = 19,units = c("cm"))
 plot_cell_trajectory(exp.monocle,color_by = "subcelltype2")
