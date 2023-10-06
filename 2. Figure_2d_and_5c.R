@@ -25,7 +25,7 @@ features <- c("IL4","IL5","IL9","IL13","IL18",
 )
 
 
-######################热图Fiugre2d
+######################heatmap Fiugre2d
 sce= SetIdent(sce,value="celltype") 
 heatmap_AveE <- AverageExpression(sce, assays = "RNA", features = features,verbose = TRUE) %>% .$RNA
 
@@ -80,7 +80,7 @@ dev.off()
 
 #Table.S7A
 sce_endo<-subset(sce,celltype %in% c("Endothelial"))
-#Endothelial_NormalvsTumor基因的差异
+#Endothelial_NormalvsTumor gene differences
 sce_endo= SetIdent(sce_endo,value="tissue") 
 
 markers <- FindMarkers(sce_endo,  ident.1="Normal", ident.2="Tumor",
