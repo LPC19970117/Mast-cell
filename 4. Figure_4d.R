@@ -1,13 +1,7 @@
-######Video source: https://ke.biowolf.cn
-######??????ѧ??: https://www.biowolf.cn/
-######΢?Ź??ںţ?biowolf_cn
-######???????䣺2749657388@qq.com
-######????΢??: 18520221056
-
 #install.packages("survival")
 #install.packages("survminer")
 
-setwd("C:\\Users\\lexb4\\Desktop\\immuneGene\\16.survival")              #???ù???Ŀ¼
+setwd("C:\\Users\\lexb4\\Desktop\\immuneGene\\16.survival")           
 library(survival)
 library("survminer")
 rt=read.table("risk.txt",header=T,sep="\t")
@@ -18,10 +12,9 @@ pValue=format(pValue, scientific = TRUE)
 
 fit <- survfit(Surv(futime, fustat) ~ risk, data = rt)
 
-#????????????
 pdf(file="survival.pdf",onefile = FALSE,
-       width = 5.5,             #ͼƬ?Ŀ???
-       height =5)             #ͼƬ?ĸ߶?
+       width = 5.5,            
+       height =5)        
 ggsurvplot(fit, 
            data=rt,
            conf.int=TRUE,
@@ -37,11 +30,4 @@ ggsurvplot(fit,
            risk.table.height=.25)
 dev.off()
 
-summary(fit)    #?鿴??????????
-
-######Video source: https://ke.biowolf.cn
-######??????ѧ??: https://www.biowolf.cn/
-######΢?Ź??ںţ?biowolf_cn
-######???????䣺2749657388@qq.com
-######????΢??: 18520221056
-
+summary(fit)  
