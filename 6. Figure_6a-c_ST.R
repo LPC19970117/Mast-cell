@@ -15,10 +15,10 @@ library(hdf5r)
 
 ################################################################################
 CRC <- Load10X_Spatial(data.dir ="./", #本地文件目录下运行
-                       filename = "filtered_feature_bc_matrix.h5",#读取h5表达谱文件
+                       filename = "filtered_feature_bc_matrix.h5",#读取h5表达谱文件#Read h5 expression profile file
                        slice ="CRC")
 
-#这里文件夹的名字可以修改，但最好只用英文字母
+#这里文件夹的名字可以修改，但最好只用英文字母#The name of the folder here can be modified, but it is best to use only English letters
 sam.name <- "Mast1"
 if(!dir.exists(sam.name)){
   dir.create(sam.name)
@@ -39,22 +39,27 @@ p1 | p2
 ##################################################
 ## spatial天生就是Seurat对象
 # 数据标准化，使用SCTransform方法进行标准化
+## spatial is inherently a Seurat object
+# Data standardization, use SCTransform method for standardization
 
 CRC <- SCTransform(CRC, assay = "Spatial", verbose = FALSE)
 CRC <- RunPCA(CRC, assay = "SCT", verbose = FALSE) 
 plot1 <- DimPlot(CRC, reduction = "pca", group.by="orig.ident")
 plot2 <- ElbowPlot(CRC, ndims=20, reduction="pca") 
 plot1+plot2
-#选取主成分
+#选取主成分#Select principal components
 pc.num=1:15
 ## 细胞聚类
 # 图聚类分群
+## Cell clustering
+#Graph clustering
 CRC <- FindNeighbors(CRC, reduction = "pca", dims = pc.num)
 CRC <- FindClusters(CRC, verbose = FALSE)
-# UMAP降维可视化
+
+# UMAP plot
 CRC <- RunUMAP(CRC, reduction = "pca", dims =  pc.num)
 p1 <- DimPlot(CRC, reduction = "umap", label = TRUE)
-# 使用SpatialDimPlot函数进行可视化
+# 使用SpatialDimPlot函数进行可视化# Use the SpatialDimPlot function for visualization
 p2 <- SpatialDimPlot(CRC, label = TRUE, label.size = 3)
 p1 + p2
 pdf(paste0("./",sam.name,"/cluster.pdf"),width = 8,height = 4.5)
@@ -88,7 +93,7 @@ gene <- as.list(MC_activation_signature)
 CRC <- AddModuleScore(
   object = CRC,
   features = gene,
-  ctrl = 100, #默认值是100
+  ctrl = 100, 
   name = 'MC_activation_signature'
 )
 #colnames(CRC@meta.data)["26"] <- 'MC_activation_signature' 
@@ -100,8 +105,8 @@ pdf(paste0("./",sam.name,"/MC_activation_signature.pdf"),width = 8,height = 10)
 SpatialFeaturePlot(CRC, features = 'MC_activation_signature1')
 dev.off()
 
-#以下重命名髓系亚群
-#方法二：使用unname函数配合向量：
+#Rename the subgroup below
+#Method 2: Use the unname function to match the vector:
 Region_type <-c("0"="Tumor",
                       "1"="Tumor",
                       "2"="Stromal",
@@ -132,7 +137,7 @@ dev.off()
 features =c("EPCAM","UQCRB","CEACAM5","MYC","ZG16","MUC2","FCGBP","DCN","COL1A2",
             "PECAM1","TPSAB1","TPSB2","CPA3","MS4A2","HPGDS","KIT","KITLG")
 
-#### 2.1 计算marker基因
+#### 2.1 calculate marker gene
 CRC= SetIdent(CRC,value="Region") 
 all.markers <- FindAllMarkers(CRC, only.pos = TRUE, min.pct = 0, logfc.threshold = 0)
 write.table(all.markers,file=paste0("./",sam.name,"/Region","PC.txt"),sep="\t",quote = F)
