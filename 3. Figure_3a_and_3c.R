@@ -15,7 +15,7 @@ if(!dir.exists(sam.name)){
 ##read mast cell data in GSE178341
 load(file = 'sce_Mast.RData')
 
-## mast cell data in GSE178341重新聚类分组
+## mast cell data in GSE178341 Recluster grouping
 sce_Mast <- NormalizeData(sce_Mast, normalization.method = "LogNormalize", scale.factor = 10000) 
 sce_Mast <- FindVariableFeatures(sce_Mast, selection.method = 'vst', nfeatures = 2000)
 sce_Mast<- ScaleData(sce_Mast, vars.to.regress = "percent.mt")
@@ -56,7 +56,8 @@ FeaturePlot(sce_Mast, features = features,
             cols = c("#39489f","#39bbec","#f9ed36","#f38466","#b81f25") ,
             reduction = "umap")
 dev.off()
-#细胞类群相似树
+
+#ClusterTree
 sce <- BuildClusterTree(
   sce_Mast,
   dims = dim.use,
@@ -71,7 +72,7 @@ dev.off()
 pdf(paste0("./",sam.name,"/umap_patient.",max(dim.use),"PC.pdf"),width = 8,height = 4)
 DimPlot(object = sce, group.by="patient",reduction='umap')
 dev.off()
-######################热图
+######################heatmap
 sce_Mast= SetIdent(sce_Mast,value="tissue") 
 heatmap_AveE <- AverageExpression(sce_Mast, assays = "RNA", features = features,verbose = TRUE) %>% .$RNA
 gene_num <- c(11,8,6,8)
@@ -79,7 +80,7 @@ gaps_row <- cumsum(gene_num)
 
 cluster_num <- c(0)
 gaps_col <- cumsum(cluster_num)
-######################热图
+######################heatmap
 sce_Mast= SetIdent(sce_Mast,value="sample") 
 heatmap_AveE <- AverageExpression(sce_Mast, assays = "RNA", features = features,verbose = TRUE) %>% .$RNA
 
@@ -107,8 +108,8 @@ pheatmap(heatmap_AveE,cluster_cols = F,cluster_rows = F,show_colnames=T,show_row
          annotation_names_row = F,annotation_names_col = T)
 dev.off()
 
-重命名
-#方法二：使用unname函数配合向量：
+#Rename
+#Method 2: Use the unname function to match the vector:
 cluster5celltype <-c("0"="MC06_FTH",
                      "1"="MC04_LTC4S",
                      "2"="MC03_PTGS2",
@@ -162,8 +163,9 @@ DotPlot(sce_Mast, features = features)+coord_flip()+
   labs(x=NULL,y=NULL)+guides(size=guide_legend(order=3))+
   scale_color_gradientn(values = seq(0,1,0.2),colours = color1)
 dev.off()
-#### 2.1 计算mast_marker基因
-#先去除Mt等干扰基因
+
+#### 2.1 Calculate mast_marker gene
+#First remove interfering genes such as Mt genes
 GeneMT <- read.table("MT.txt",stringsAsFactors = F)
 GeneHSP <- read.table("HSP.txt",stringsAsFactors = F)
 GeneRP <- read.table("RP.txt",stringsAsFactors = F)
@@ -171,6 +173,7 @@ GeneSC <- read.table("sc_dissociation.txt",stringsAsFactors = F)
 
 GenesRM <- rbind(GeneMT, GeneHSP, GeneRP,GeneSC)
 GenesRM <- GenesRM$V1
+
 # gene filter 
 sce_Mast2 <- sce_Mast[!rownames(sce_Mast) %in% GenesRM,]
 all.markers <- FindAllMarkers(sce_Mast, only.pos = TRUE, min.pct = 0, logfc.threshold = 0)
@@ -190,7 +193,7 @@ DotPlot(sce_Mast, features = features)+coord_flip()+
   scale_color_gradientn(values = seq(0,1,0.2),colours = color1)
 dev.off()
 
-#MC_resting_vs MC_activated基因的差异
+#MC_resting_vs MC_activated gene difference
 #Table_S6
 sce_Mast2= SetIdent(sce_Mast2,value="subcelltype2") 
 markers <- FindMarkers(sce_Mast2, ident.1="Resting_MC", ident.2="Activated_MC",
@@ -198,7 +201,7 @@ markers <- FindMarkers(sce_Mast2, ident.1="Resting_MC", ident.2="Activated_MC",
                        logfc.threshold =0,min.pct = 0 )
 write.table(markers,file=paste0("./",sam.name,"/","MC_resting_vs MC_activated",max(dim.use),"PC.txt"),sep="\t",quote = F)
 
-#方法二：使用unname函数配合向量：
+#Method 2: Use the unname function to match the vector:
 cluster5celltype <-c("0"="MC06",
                      "1"="MC04",
                      "2"="MC03",
@@ -237,18 +240,18 @@ DotPlot(sce_Mast, group.by = 'subcelltype3',features = features)+coord_flip()+
   scale_color_gradientn(values = seq(0,1,0.2),colours = color1)
 dev.off()
 
-####计算每个样本MC的subcelltype差异
+####
 table(sce_Mast@meta.data$subcelltype,sce_Mast@meta.data$tissue)
 table(sce_Mast@meta.data$subcelltype,sce_Mast@meta.data$sample)
 write.csv(table(sce_Mast@meta.data$subcelltype,sce_Mast@meta.data$tissue),file="MC_subcelltype_tissue.csv")
 write.csv(table(sce_Mast@meta.data$subcelltype,sce_Mast@meta.data$sample),file="MC_subcelltype_sample.csv")
 
-#输出MC meta.data数据
+#输出MC meta.data数据##Output MC meta.data data
 write.table(sce_Mast@meta.data,file=paste0("./",sam.name,"/","sce_Mast@meta.data",".txt"),sep="\t",quote = F)
-#4.存储数据
+#4.save data
 save(sce_Mast,file=paste0("./sce_Mast2.RData"))
 
-######subcelltype特征gene图
+######subcelltype signature gene plot
 cluster5celltype <-c("0"="MC06_FTH1",
                      "1"="MC04_LTC4S",
                      "2"="MC03_PTGS2",
@@ -267,6 +270,7 @@ features <- c("IL1RL1","TPSAB1","PTGS2","LTC4S",
               "CMA1","FTH1","PIGR","MKI67",#n= 15cytokines and GF
               "IFIT1","MT-CO2","MZB1","CD3D"
 )
+
 #Figure_S1A
 color1 = colorRampPalette(rev(brewer.pal(n= 7, name = "RdYlBu")))(100)
 pdf(paste0("./mast_subcelltype",".pdf"),width =5,height =3.5) 
