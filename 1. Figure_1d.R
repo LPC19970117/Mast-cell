@@ -1,12 +1,6 @@
-# ???ߣ????㺣??
-# ??λ???й?ҩ?ƴ?ѧ??????Ȼҩ???ص?ʵ???ң?????ͳ????????ҩѧ?о?????
 
-# ???󣺷???????????????????????????֯?еĲ?????????????????ƴ?ӵĵ?ͼ????״ͼ
-
-# ???ù???·??
 workdir <- "/Users/yimang/Desktop/20221218mast_cell数据分析/泛癌表达/Mast"; setwd(workdir)
 
-# ????R??
 library(ggplot2)
 library(data.table)
 library(randomcoloR)
@@ -21,7 +15,7 @@ if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
 BiocManager::install("limma")
-# ??????ɫ
+
 blue <- "#4577FF"
 red <- "#C2151A"
 orange <- "#E45737"
@@ -30,7 +24,6 @@ darkblue <- "#303B7F"
 darkred <- "#D51113"
 yellow <- "#EECA1F"
 
-# ????ͬʱ????????????????????????
 tumors <- c("BLCA","BRCA","CESC","CHOL","COAD",
             "ESCA","GBM","HNSC","KICH","KIRC",
             "KIRP","LIHC","LUAD","LUSC","PAAD",
@@ -52,9 +45,8 @@ tumors2 <- c(#"ACC",
             #"UVM"
             )
 
-# ???ø???Ȥ?Ļ?????(TTC35??EMC2??ͬ??)
+
 frg2<- c("TPSAB1","TPSB2","CPA3","HPGDS","MS4A2")
-# ????TCGA????
 # https://gdc.cancer.gov/about-data/publications/pancanatlas
 rawAnno <- read.delim("merged_sample_quality_annotations.tsv",sep = "\t",row.names = NULL,check.names = F,stringsAsFactors = F,header = T) # ????��??PanCanAtlas
 rawAnno$simple_barcode <- substr(rawAnno$aliquot_barcode,1,15)
@@ -65,7 +57,6 @@ write.table(samAnno,"simple_sample_annotation.txt",sep = "\t",row.names = F,col.
 #-----------#
 # Figure 1B #
 
-# ???ٶ?ȡ??????
 # https://gdc.cancer.gov/about-data/publications/pancanatlas
 expr <- fread("EBPlusPlusAdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.tsv",sep = "\t",stringsAsFactors = F,check.names = F,header = T)
 expr <- as.data.frame(expr); rownames(expr) <- expr[,1]; expr <- expr[,-1]
@@ -98,22 +89,21 @@ for (i in tumors2) {
   subt <- data.frame(condition = rep(c("tumor","normal"),c(length(tumsam),length(norsam))),
                      row.names = colnames(expr_subset),
                      stringsAsFactors = F)
-  twoclasslimma(subtype  = subt, # ??????Ϣ (???뺬??һ?н?'condition')
-                featmat  = expr_subset, # ?????? (???Զ??ж?????��??)
-                treatVar = "tumor", # ???????顱??????????Ҫ?Ƚϵ??飩
-                ctrlVar  = "normal", # ???????顱?????????Ǳ??Ƚϵ??飩
-                prefix   = paste0("TCGA_",i), # ???????????ļ???ǰ׺
-                overwt   = T, # ?Ƿ񸲸??Ѿ????ڵĲ????????ļ?
-                sort.p   = F, # ?Ƿ?????pֵ
-                verbose  = TRUE, # ?Ƿ?????????
-                res.path = workdir) # ????????
+  twoclasslimma(subtype  = subt,
+                featmat  = expr_subset,
+                treatVar = "tumor",
+                ctrlVar  = "normal", 
+                prefix   = paste0("TCGA_",i), 
+                overwt   = T, 
+                sort.p   = F, 
+                verbose  = TRUE, 
+                res.path = workdir) 
   
-  # ???ز????????ļ?
   res <- read.table(paste0("TCGA_",i,"_limma_test_result.tumor_vs_normal.txt"),sep = "\t",row.names = 1,check.names = F,stringsAsFactors = F,header = T)
-  upgene <- res[which(res$log2fc > log2fc.cutoff & res$padj < fdr.cutoff),] # ??ȡ?ϵ?????
-  dngene <- res[which(res$log2fc < -log2fc.cutoff & res$padj < fdr.cutoff),] # ??ȡ?µ?????
+  upgene <- res[which(res$log2fc > log2fc.cutoff & res$padj < fdr.cutoff),] 
+  dngene <- res[which(res$log2fc < -log2fc.cutoff & res$padj < fdr.cutoff),] 
   
-  # ????????????????Ŀ?Բ???ͼƬ???ϲ?ע??
+
   if(nrow(upgene) > 0) {
     nup <- nrow(upgene)
   } else {nup <- 0}
@@ -138,7 +128,6 @@ for (i in tumors2) {
 }
 ndegs$Group <- factor(ndegs$Group, levels = c("UP","DOWN"))
 
-# ?????ϲ?ע??
 p_top <- ggplot(data = ndegs) +
   geom_bar(mapping = aes(x = tumor, y = Number, fill = Group), 
            stat = 'identity',position = 'stack') + 
@@ -148,7 +137,6 @@ p_top <- ggplot(data = ndegs) +
         axis.title.x = element_blank(),
         plot.margin = unit(c(1,0,0,1), "lines"))
 
-# ?????²?????ͼ
 exprTab$gene <- factor(exprTab$gene,
                        levels = rev(c("CD3D","CD8A","CD19","MS4A1","CD79A","IGHG1","CD14","CD68","SPP1","PECAM1","EPCAM","DCN","COL1A2")))
 my_palette <- colorRampPalette(c(green,"white",orange), alpha=TRUE)(n=128)
@@ -165,7 +153,6 @@ p_center <- ggplot(exprTab, aes(x=tumor,y=gene)) +
         panel.border = element_rect(size = 0.7, linetype = "solid", colour = "black"),
         plot.margin = unit(c(0,0,1,1), "lines")) 
 
-# ?Ų?ͼƬ
 ggarrange(p_top,
           p_center, 
           nrow = 2, ncol = 1,
