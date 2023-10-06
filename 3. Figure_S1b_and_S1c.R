@@ -14,16 +14,16 @@ if(!dir.exists(sam.name)){
 load(file = 'sce_Mast2.RData')
 
 Angiogenesis_score <- readxl::read_xlsx("Angiogenesis_score.xlsx")
-#转换成list
+#transformed into list
 sce_Mast= SetIdent(sce_Mast,value="subcelltype2") 
-#4.提取指定单细胞亚群
+#4.提取指定单细胞亚群#Extract specified single cell subpopulations
 sce_Mast<-subset(sce_Mast,subcelltype2 %in% c("Activated_MC","Resting_MC"))
 
 gene <- as.list(Angiogenesis_score)
 sce_Mast <- AddModuleScore(
   object = sce_Mast,
   features = gene,
-  ctrl = 100, #默认值是100
+  ctrl = 100, 
   name = 'Angiogenesis_score'
 )
 pdf(paste0("./",sam.name,"/Angiogenesis_score",".pdf"),width = 4,height = 4)
