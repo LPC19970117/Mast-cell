@@ -15,7 +15,7 @@ if(!dir.exists(sam.name)){
 load(file = 'sce_Mast.RData')
 
 
-## mast cell data in GSE178341重新聚类分组
+## mast cell data in GSE178341 Recluster grouping
 sce_Mast <- NormalizeData(sce_Mast, normalization.method = "LogNormalize", scale.factor = 10000) 
 sce_Mast <- FindVariableFeatures(sce_Mast, selection.method = 'vst', nfeatures = 2000)
 sce_Mast<- ScaleData(sce_Mast, vars.to.regress = "percent.mt")
@@ -40,7 +40,7 @@ FeaturePlot(sce_Mast, features = features,
             cols = c("#39489f","#39bbec","#f9ed36","#f38466","#b81f25") ,
             reduction = "umap")
 dev.off()
-#细胞类群相似树
+#ClusterTree
 sce <- BuildClusterTree(
   sce_Mast,
   dims = dim.use,
@@ -90,7 +90,7 @@ all.markers <- FindAllMarkers(sce_Mast, only.pos = TRUE, min.pct = 0, logfc.thre
 write.table(all.markers,file=paste0("./",sam.name,"/","sce_Mast_marker_genes_subcelltype2_","PC.txt"),sep="\t",quote = F)
 
 
-####计算每个样本MC的seurat_clusters差异
+####计算每个样本MC的seurat_clusters差异#### Calculate the seurat_clusters difference of each sample MC
 write.csv(table(sce_Mast@meta.data$seurat_clusters,sce_Mast@meta.data$tissue),file="MC_seurat_clusters_tissue.csv")
 write.csv(table(sce_Mast@meta.data$seurat_clusters,sce_Mast@meta.data$sample),file="MC_seurat_clusters_sample.csv")
 
@@ -204,9 +204,7 @@ DotPlot(sce_Mast, group.by = 'subcelltype_new',features = features)+coord_flip()
   scale_color_gradientn(values = seq(0,1,0.2),colours = color1)+ RotatedAxis()
 dev.off()
 
-
-
-####组织中不同subcelltype2
+####组织中不同subcelltype2####Different subcelltype2 in the organization
 Ratio <- sce_Mast@meta.data %>%group_by(tissue,subcelltype2) %>%
   count() %>%
   group_by(tissue) %>%
