@@ -3,7 +3,7 @@ library(ggplot2)
 library(dplyr)
 # setwd("D:/KS项目/公众号文章/堆叠柱状图显示比例")
 
-####不同组织tissue中不同subcelltype2比例
+####不同组织tissue中不同subcelltype2比例#The proportion of different subcelltype2 groups in different tissues
 Ratio <- sce_Mast@meta.data %>%group_by(tissue,subcelltype2) %>%
   count() %>%
   group_by(tissue) %>%
